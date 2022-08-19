@@ -149,12 +149,24 @@ class CrossAttention(nn.Module):
         self.v_proj = nn.Linear(context_dim, hidden_size, bias=False)
         self.o_proj = nn.Linear(hidden_size, dim, bias=False)
 
-    def forward(self, x: torch.Tensor, context: torch.Tensor) -> torch.Tensor:
+    def forward(
+        self,
+        x: torch.Tensor,
+        context: torch.Tensor,
+        mask: Optional[torch.Tensor] = None,
+    ) -> Dict[str, torch.Tensor]:
         query = self.q_proj(x)
         key = self.k_proj(context)
         value = self.v_proj(context)
 
         attention_score = torch.einsum("b i d, b j d -> b i j", query, key)
+
+        if mask is not None:
+            if mask.ndim == 2:
+                mask = einops.repeat(mask, "b i -> b i 1")
+            big_neg = -torch.finfo(attention_score.dtype).max
+            attention_score.masked_fill_(~mask.bool(), big_neg)
+
         attention_weights = torch.softmax(attention_score, dim=-1)
 
         out = (
@@ -162,7 +174,7 @@ class CrossAttention(nn.Module):
         )
         out = self.o_proj(out)
 
-        return out
+        return {"outputs": out, "attention_weights": attention_weights.detach()}
 
 
 class MultiHeadCrossAttention(nn.Module):
@@ -199,7 +211,12 @@ class MultiHeadCrossAttention(nn.Module):
         self.v_proj = nn.Linear(context_dim, hidden_size, bias=False)
         self.o_proj = nn.Linear(hidden_size, dim, bias=False)
 
-    def forward(self, x: torch.Tensor, context: torch.Tensor) -> torch.Tensor:
+    def forward(
+        self,
+        x: torch.Tensor,
+        context: torch.Tensor,
+        mask: Optional[torch.Tensor] = None,
+    ) -> Dict[str, torch.Tensor]:
         query = self.q_proj(x)
         key = self.k_proj(context)
         value = self.v_proj(context)
@@ -209,6 +226,15 @@ class MultiHeadCrossAttention(nn.Module):
         value = einops.rearrange(value, "b i (h d) -> b h i d", h=self.n_heads)
 
         attention_score = torch.einsum("b h i d, b h j d -> b h i j", query, key)
+
+        if mask is not None:
+            if mask.ndim == 2:
+                mask = einops.repeat(mask, "b i -> b h i 1", h=self.n_heads)
+            elif mask.ndim == 3:
+                mask = einops.repeat(mask, "b h i -> b h i 1")
+            big_neg = -torch.finfo(attention_score.dtype).max
+            attention_score.masked_fill_(~mask.bool(), big_neg)
+
         attention_weights = torch.softmax(attention_score, dim=-1)
 
         out = torch.einsum("b h i j, b h j d -> b h i d", attention_weights, value)
@@ -216,4 +242,4 @@ class MultiHeadCrossAttention(nn.Module):
 
         out = self.o_proj(out)
 
-        return out
+        return {"outputs": out, "attention_weights": attention_weights.detach()}

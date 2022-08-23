@@ -154,6 +154,7 @@ class CrossAttention(nn.Module):
         x: torch.Tensor,
         context: torch.Tensor,
         mask: Optional[torch.Tensor] = None,
+        context_mask: Optional[torch.Tensor] = None,  # TODO
     ) -> Dict[str, torch.Tensor]:
         query = self.q_proj(x)
         key = self.k_proj(context)
@@ -216,6 +217,7 @@ class MultiHeadCrossAttention(nn.Module):
         x: torch.Tensor,
         context: torch.Tensor,
         mask: Optional[torch.Tensor] = None,
+        context_mask: Optional[torch.Tensor] = None,  # TODO
     ) -> Dict[str, torch.Tensor]:
         query = self.q_proj(x)
         key = self.k_proj(context)

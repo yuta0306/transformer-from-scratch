@@ -43,7 +43,7 @@ class SelfAttention(nn.Module):
 
         if mask is not None:
             if mask.ndim == 2:
-                mask = einops.repeat("b i -> b 1 i")
+                mask = einops.repeat(mask, "b i -> b 1 i")
             big_neg = -torch.finfo(attention_score.dtype).max
             attention_score.masked_fill_(~mask.bool(), big_neg)
 
@@ -108,15 +108,15 @@ class MultiHeadSelfAttention(nn.Module):
 
         if mask is not None:
             if mask.ndim == 2:
-                mask = einops.repeat("b i -> h b 1 i", h=self.n_heads)
+                mask = einops.repeat(mask, "b i -> h b 1 i", h=self.n_heads)
             elif mask.ndim == 3:
-                mask = einops.repeat("h b i -> h b 1 i")
+                mask = einops.repeat(mask, "h b i -> h b 1 i")
             big_neg = -torch.finfo(attention_score.dtype).max
             attention_score.masked_fill_(~mask.bool(), big_neg)
 
         attention_weights = torch.softmax(attention_score, dim=-1)
 
-        out = torch.einsum("h b i h, h b j d -> h b i d", attention_weights, value)
+        out = torch.einsum("h b i j, h b j d -> h b i d", attention_weights, value)
         out = einops.rearrange(out, "h b i d -> b i (h d)")
 
         out = self.o_proj(out)
@@ -166,7 +166,7 @@ class CrossAttention(nn.Module):
 
         if mask is not None:
             if mask.ndim == 2:
-                mask = einops.repeat("b i -> b 1 i")
+                mask = einops.repeat(mask, "b i -> b 1 i")
             big_neg = -torch.finfo(attention_score.dtype).max
             attention_score.masked_fill_(~mask.bool(), big_neg)
 
@@ -235,15 +235,15 @@ class MultiHeadCrossAttention(nn.Module):
 
         if mask is not None:
             if mask.ndim == 2:
-                mask = einops.repeat("b i -> h b 1 i", h=self.n_heads)
+                mask = einops.repeat(mask, "b i -> h b 1 i", h=self.n_heads)
             elif mask.ndim == 3:
-                mask = einops.repeat("h b i -> h b 1 i")
+                mask = einops.repeat(mask, "h b i -> h b 1 i")
             big_neg = -torch.finfo(attention_score.dtype).max
             attention_score.masked_fill_(~mask.bool(), big_neg)
 
         attention_weights = torch.softmax(attention_score, dim=-1)
 
-        out = torch.einsum("h b i h, h b j d -> h b i d", attention_weights, value)
+        out = torch.einsum("h b i j, h b j d -> h b i d", attention_weights, value)
         out = einops.rearrange(out, "h b i d -> b i (h d)")
 
         out = self.o_proj(out)

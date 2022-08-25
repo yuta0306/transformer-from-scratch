@@ -17,6 +17,7 @@ class Transformer(nn.Module):
         num_layers: int,
         hidden_size: Optional[int] = None,
         dropout: float = 0.1,
+        max_length: int = 512,
     ) -> None:
         super(Transformer, self).__init__()
 
@@ -24,7 +25,7 @@ class Transformer(nn.Module):
             hidden_size = d_model
 
         self.embedding = nn.Embedding(vocab_size, d_model)
-        self.pe = PositionalEncoding(d_model, dropout)
+        self.pe = PositionalEncoding(d_model, dropout, max_length=max_length)
         encoder_layer = TransformerEncoderLayer(d_model, n_heads, hidden_size, dropout)
         self.encoder = TransformerEncoder(encoder_layer, num_layers)
         decoder_layer = TransformerDecoderLayer(d_model, n_heads, hidden_size, dropout)

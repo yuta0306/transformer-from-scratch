@@ -110,7 +110,7 @@ class MultiHeadSelfAttention(nn.Module):
             if mask.ndim == 2:
                 mask = einops.repeat(mask, "b i -> h b 1 i", h=self.n_heads)
             elif mask.ndim == 3:
-                mask = einops.repeat(mask, "h b i -> h b 1 i")
+                mask = einops.repeat(mask, "b i j -> h b i j", h=self.n_heads)
             big_neg = -torch.finfo(attention_score.dtype).max
             attention_score.masked_fill_(~mask.bool(), big_neg)
 
@@ -237,7 +237,7 @@ class MultiHeadCrossAttention(nn.Module):
             if mask.ndim == 2:
                 mask = einops.repeat(mask, "b i -> h b 1 i", h=self.n_heads)
             elif mask.ndim == 3:
-                mask = einops.repeat(mask, "h b i -> h b 1 i")
+                mask = einops.repeat(mask, "b i j -> h b i j", h=self.n_heads)
             big_neg = -torch.finfo(attention_score.dtype).max
             attention_score.masked_fill_(~mask.bool(), big_neg)
 

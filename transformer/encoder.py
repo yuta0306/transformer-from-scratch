@@ -32,7 +32,7 @@ class TransformerEncoderLayer(nn.Module):
         x: torch.Tensor,
         mask: Optional[torch.Tensor] = None,
     ) -> torch.Tensor:
-        out = x + self.dropout1(self.self_attn(x, mask))
+        out = x + self.dropout1(self.self_attn(x, mask)["outputs"])
         out = self.norm1(out)
 
         out = out + self.dropout2(self.ffn(out))

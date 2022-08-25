@@ -196,7 +196,7 @@ class MultiHeadCrossAttention(nn.Module):
         if hidden_size is None:
             hidden_size = dim
         if context_dim is None:
-            hidden_size = dim
+            context_dim = dim
 
         assert hidden_size % n_heads == 0
 

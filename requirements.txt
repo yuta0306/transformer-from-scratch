@@ -14,7 +14,8 @@ joblib==1.2.0
 mccabe==0.7.0
 mypy==0.971
 mypy-extensions==0.4.3
-numpy==1.23.2
+# numpy==1.23.2
+numpy==1.21.6  # for colab
 packaging==21.3
 pandas==1.4.4
 pathspec==0.9.0

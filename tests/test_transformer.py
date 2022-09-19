@@ -73,8 +73,9 @@ def test_transformer_with_bert_conf():
         padding="max_length",
         truncation=True,
         max_length=config.max_length,
-        return_tensors="pt,",
+        return_tensors="pt",
     )
     input_ids = inputs["input_ids"]
     attention_mask = inputs["attention_mask"]
-    out = model(input_ids)
+    out = model(input_ids, attention_mask)
+    print(out)

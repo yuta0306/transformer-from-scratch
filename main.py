@@ -117,7 +117,7 @@ class MTModel(nn.Module):
         self,
         src: torch.Tensor,
         src_mask: torch.Tensor,
-        alpha: float = 0.5,
+        alpha: float = 0.01,
         eos_token: int = 0,
         pad_token: int = 60715,
     ):
@@ -175,7 +175,7 @@ def train(
     )
 
     criterion = nn.CrossEntropyLoss()
-    optimizer = optim.AdamW(model.parameters(), lr=5e-5)
+    optimizer = optim.AdamW(model.parameters(), lr=5e-4)
     lr_scheduler = optim.lr_scheduler.CosineAnnealingWarmRestarts(optimizer, T_0=1000)
 
     for e in trange(epoch):
@@ -231,4 +231,4 @@ def train(
 if __name__ == "__main__":
     df = load_txt("data/jpn.txt")
     traindf, testdf = split_data(df)
-    train("Helsinki-NLP/opus-mt-ja-en", traindf, testdf, batch_size=64, epoch=20)
+    train("Helsinki-NLP/opus-mt-ja-en", traindf, testdf, batch_size=64, epoch=10)

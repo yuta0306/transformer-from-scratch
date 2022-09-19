@@ -8,7 +8,7 @@ import torch.nn as nn
 import torch.optim as optim
 import torch.utils.data as data
 from sklearn.model_selection import train_test_split
-from tqdm import tqdm, trange
+from tqdm.notebook import tqdm, trange
 from transformers import AutoConfig, AutoTokenizer
 
 from transformer import Transformer

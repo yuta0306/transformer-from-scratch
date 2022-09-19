@@ -19,7 +19,7 @@ def load_txt(path: str) -> pd.DataFrame:
 
 
 def split_data(df: pd.DataFrame) -> Tuple[pd.DataFrame, ...]:
-    train, test = train_test_split(df, test_size=0.3)
+    train, test = train_test_split(df, test_size=1000)
     # train, valid = train_test_split(train, test_size=0.3)
     # return train, valid, test
     return train, test
@@ -176,7 +176,7 @@ def train(
 
     criterion = nn.CrossEntropyLoss()
     optimizer = optim.AdamW(model.parameters(), lr=5e-5)
-    lr_scheduler = optim.lr_scheduler.CosineAnnealingWarmRestarts(optimizer, T_0=200)
+    lr_scheduler = optim.lr_scheduler.CosineAnnealingWarmRestarts(optimizer, T_0=1000)
 
     for e in trange(epoch):
         step = 0
@@ -205,10 +205,10 @@ def train(
 
             total += loss.item()
 
-            if step % 20 == 0:
+            if step % 200 == 0:
                 print(f"Epoch {e} | Step {step} >> Loss {loss.item()}")
         print("=" * 30)
-        print(f"Epoch {e} >> Loss {total}")
+        print(f"Epoch {e} >> Loss {total / step}")
         print()
         print("Predict testset")
         preds = []

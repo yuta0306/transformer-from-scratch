@@ -117,7 +117,7 @@ class MTModel(nn.Module):
         self,
         src: torch.Tensor,
         src_mask: torch.Tensor,
-        alpha: float = 0.01,
+        alpha: float = 0.001,
         eos_token: int = 0,
         pad_token: int = 60715,
     ):

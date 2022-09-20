@@ -175,7 +175,7 @@ def train(
     )
 
     criterion = nn.CrossEntropyLoss()
-    optimizer = optim.AdamW(model.parameters(), lr=2e-7)
+    optimizer = optim.AdamW(model.parameters(), lr=1e-4)
     lr_scheduler = optim.lr_scheduler.CosineAnnealingWarmRestarts(optimizer, T_0=1000)
 
     for e in trange(epoch):

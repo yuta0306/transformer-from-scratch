@@ -28,6 +28,7 @@ class PositionalEncoding(nn.Module):
         self.dropout = nn.Dropout(p=dropout)
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
+        print(x.shape, self.pe.shape)
         out = x + self.pe[: x.size(0)]
         out = self.dropout(out)
 

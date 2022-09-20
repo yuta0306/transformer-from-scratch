@@ -112,6 +112,7 @@ class MultiHeadSelfAttention(nn.Module):
             elif mask.ndim == 3:
                 mask = einops.repeat(mask, "b i j -> h b i j", h=self.n_heads)
             big_neg = -torch.finfo(attention_score.dtype).max
+            print(attention_score.shape, mask.shape)
             attention_score.masked_fill_(~mask.bool(), big_neg)
 
         attention_weights = torch.softmax(attention_score, dim=-1)

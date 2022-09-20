@@ -35,8 +35,8 @@ def get_tokenizer(model_path: str):
 
 def get_model(
     vocab_size: int,
-    d_model: int = 768,
-    n_heads: int = 12,
+    d_model: int = 256,
+    n_heads: int = 4,
     num_layers: int = 4,
     hidden_size: Optional[int] = None,
     dropout: float = 0.1,

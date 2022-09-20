@@ -188,7 +188,7 @@ def train(
                 tgt["input_ids"].to(device),
                 src["attention_mask"].to(device),
                 einops.repeat(
-                    Transformer.generate_square_subsequent_mask(128),
+                    Transformer.generate_square_subsequent_mask(32),
                     "t l -> b t l",
                     b=batch_size,
                 ).to(device),

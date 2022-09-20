@@ -175,7 +175,7 @@ def train(
     )
 
     criterion = nn.CrossEntropyLoss()
-    optimizer = optim.AdamW(model.parameters(), lr=5e-4)
+    optimizer = optim.AdamW(model.parameters(), lr=2e-5)
     lr_scheduler = optim.lr_scheduler.CosineAnnealingWarmRestarts(optimizer, T_0=1000)
 
     for e in trange(epoch):
@@ -215,7 +215,9 @@ def train(
         srcs = []
         for src, tgt in tqdm(test_loader, leave=False):
             ids = model.greedy_search(
-                src["input_ids"].to(device), src["attention_mask"].to(device)
+                src["input_ids"].to(device),
+                src["attention_mask"].to(device),
+                alpha=0,
             )
             text = tokenizer.batch_decode(ids.to("cpu"), skip_special_tokens=True)
             preds += text

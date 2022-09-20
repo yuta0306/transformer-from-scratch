@@ -40,7 +40,7 @@ def get_model(
     num_layers: int = 4,
     hidden_size: Optional[int] = None,
     dropout: float = 0.1,
-    max_length: int = 128,
+    max_length: int = 32,
 ) -> Transformer:
     model = Transformer(
         vocab_size=vocab_size,
@@ -162,7 +162,7 @@ def train(
         batch_size=batch_size,
         shuffle=True,
         num_workers=2,
-        collate_fn=CollateFn(tokenizer, max_length=128),
+        collate_fn=CollateFn(tokenizer, max_length=32),
         drop_last=True,
         pin_memory=True,
     )
@@ -170,12 +170,12 @@ def train(
         test_dataset,
         batch_size=batch_size * 2,
         num_workers=2,
-        collate_fn=CollateFn(tokenizer, max_length=128),
+        collate_fn=CollateFn(tokenizer, max_length=32),
         pin_memory=True,
     )
 
     criterion = nn.CrossEntropyLoss()
-    optimizer = optim.AdamW(model.parameters(), lr=2e-5)
+    optimizer = optim.AdamW(model.parameters(), lr=2e-7)
     lr_scheduler = optim.lr_scheduler.CosineAnnealingWarmRestarts(optimizer, T_0=1000)
 
     for e in trange(epoch):
@@ -233,4 +233,4 @@ def train(
 if __name__ == "__main__":
     df = load_txt("data/jpn.txt")
     traindf, testdf = split_data(df)
-    train("Helsinki-NLP/opus-mt-ja-en", traindf, testdf, batch_size=64, epoch=10)
+    train("Helsinki-NLP/opus-mt-ja-en", traindf, testdf, batch_size=128, epoch=30)

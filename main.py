@@ -152,7 +152,7 @@ def train(
     config = get_config(model_path)
     tokenizer = get_tokenizer(model_path)
     transformer = get_model(config.vocab_size)
-    model = MTModel(transformer, vocab_size=config.vocab_size, d_model=768)
+    model = MTModel(transformer, vocab_size=config.vocab_size, d_model=256)
     model = model.to(device)
 
     dataset = MTDataset(train)

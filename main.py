@@ -36,11 +36,11 @@ def get_tokenizer(model_path: str):
 def get_model(
     vocab_size: int,
     tgt_vocab_size: Optional[int] = None,
-    d_model: int = 256,
+    d_model: int = 128,
     n_heads: int = 4,
-    num_layers: int = 4,
+    num_layers: int = 2,
     hidden_size: Optional[int] = None,
-    dropout: float = 0.1,
+    dropout: float = 0.0,
     max_length: int = 32,
 ) -> Transformer:
     model = Transformer(

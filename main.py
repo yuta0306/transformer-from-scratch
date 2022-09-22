@@ -286,14 +286,9 @@ def train(
                     ids.to("cpu"), skip_special_tokens=True
                 )
             preds += text
-            if tgt_tokenizer is None:
-                srcs += tokenizer.batch_decode(
-                    src["input_ids"].to("cpu"), skip_special_tokens=True
-                )
-            else:
-                srcs += tgt_tokenizer.batch_decode(
-                    src["input_ids"].to("cpu"), skip_special_tokens=True
-                )
+            srcs += tokenizer.batch_decode(
+                src["input_ids"].to("cpu"), skip_special_tokens=True
+            )
 
         df = pd.DataFrame(data={"src": srcs, "tgt": preds})
         os.makedirs("results", exist_ok=True)

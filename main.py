@@ -263,7 +263,7 @@ def train(
             optimizer.zero_grad()
             loss.backward()
             optimizer.step()
-            lr_scheduler.step()
+            # lr_scheduler.step()
 
             total += loss.item()
 

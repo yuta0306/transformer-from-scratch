@@ -139,7 +139,8 @@ class MTModel(nn.Module):
 
         for i in trange(src.size(1) - 1, leave=False):
             tgt_mask[:, i] = 1
-            # print(tgt[0])
+            print(tgt_mask[0])
+            print(tgt[0])
             pred = self(src, src_mask, tgt, tgt_mask)
             pred = pred[:, i]
             # logits = torch.softmax(pred, dim=-1)
@@ -231,7 +232,7 @@ def train(
         pin_memory=True,
     )
 
-    criterion = nn.CrossEntropyLoss(ignore_index=32000 + 1)
+    criterion = nn.CrossEntropyLoss(ignore_index=32000)
     optimizer = optim.AdamW(model.parameters(), lr=1e-3)
     # lr_scheduler = optim.lr_scheduler.CosineAnnealingWarmRestarts(optimizer, T_0=1000)
     lr_scheduler = CosineAnnealingLR(

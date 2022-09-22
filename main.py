@@ -119,7 +119,7 @@ class MTModel(nn.Module):
         src_mask: torch.Tensor,
         alpha: float = 0.001,
         eos_token: int = 0,
-        pad_token: int = 60715,
+        pad_token: int = 32000,
     ):
         tgt = torch.zeros_like(src, device=src.device)
         tgt[:, 1:].fill_(pad_token)
@@ -233,4 +233,4 @@ def train(
 if __name__ == "__main__":
     df = load_txt("data/jpn.txt")
     traindf, testdf = split_data(df)
-    train("Helsinki-NLP/opus-mt-ja-en", traindf, testdf, batch_size=128, epoch=50)
+    train("staka/fugumt-en-ja", traindf, testdf, batch_size=128, epoch=50)

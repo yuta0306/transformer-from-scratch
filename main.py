@@ -145,7 +145,7 @@ class MTModel(nn.Module):
             pred = pred[:, i]
             # logits = torch.softmax(pred, dim=-1)
             ids = pred.max(dim=-1)
-            print(torch.topk(pred, 5, dim=-1))
+            print(torch.topk(pred, 5, dim=-1).indices)
 
             # threshold
             tgt[:, i + 1] = ids.indices.masked_fill(

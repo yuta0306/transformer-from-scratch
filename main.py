@@ -65,7 +65,7 @@ class MTDataset(data.Dataset):
 
     def __getitem__(self, index):
         src = self.en[index]
-        tgt = self.ja[index]
+        tgt = "</s> " + self.ja[index]
 
         return src, tgt
 
@@ -206,11 +206,10 @@ def train(
                     b=batch_size,
                 ).to(device),
             )
-            print(Transformer.generate_square_subsequent_mask(32))
 
             loss = criterion(
-                outs.contiguous().view(-1, outs.size(-1)).to(device),
-                tgt["input_ids"].contiguous().view(-1).to(device),
+                outs[:, :-1].contiguous().view(-1, outs.size(-1)).to(device),
+                tgt["input_ids"][:, 1:].contiguous().view(-1).to(device),
             )
 
             optimizer.zero_grad()

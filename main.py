@@ -8,7 +8,7 @@ import torch.nn as nn
 import torch.optim as optim
 import torch.utils.data as data
 from sklearn.model_selection import train_test_split
-from tqdm.notebook import tqdm, trange
+from tqdm import tqdm, trange
 from transformers import AutoConfig, AutoTokenizer
 
 from transformer import Transformer
@@ -64,8 +64,8 @@ class MTDataset(data.Dataset):
         return len(self.en)
 
     def __getitem__(self, index):
-        src = "</s>" + self.en[index] + "</s>"
-        tgt = "</s>" + self.ja[index] + "</s>"
+        src = self.en[index]
+        tgt = self.ja[index]
 
         return src, tgt
 
@@ -138,6 +138,19 @@ class MTModel(nn.Module):
         return tgt
 
 
+class LRScheduler(optim.lr_scheduler._LRScheduler):
+    def __init__(
+        self,
+        optimizer: optim.Optimizer,
+        warmup_steps: int,
+        cycle_steps: int,
+        last_epoch: int = -1,
+    ) -> None:
+        super(LRScheduler, self).__init__(optimizer, last_epoch)
+        self.warmup_steps = warmup_steps
+        self.cycle_steps = cycle_steps
+
+
 def train(
     model_path: str,
     train: pd.DataFrame,
@@ -175,7 +188,7 @@ def train(
     )
 
     criterion = nn.CrossEntropyLoss()
-    optimizer = optim.AdamW(model.parameters(), lr=5e-6)
+    optimizer = optim.AdamW(model.parameters(), lr=1e-4)
     lr_scheduler = optim.lr_scheduler.CosineAnnealingWarmRestarts(optimizer, T_0=1000)
 
     for e in trange(epoch):
@@ -193,6 +206,7 @@ def train(
                     b=batch_size,
                 ).to(device),
             )
+
             loss = criterion(
                 outs[:, :-1, :].contiguous().view(-1, outs.size(-1)).to(device),
                 tgt["input_ids"][:, 1:].contiguous().view(-1).to(device),
@@ -233,4 +247,4 @@ def train(
 if __name__ == "__main__":
     df = load_txt("data/jpn.txt")
     traindf, testdf = split_data(df)
-    train("staka/fugumt-en-ja", traindf, testdf, batch_size=128, epoch=50)
+    train("staka/fugumt-en-ja", traindf, testdf, batch_size=4, epoch=50)

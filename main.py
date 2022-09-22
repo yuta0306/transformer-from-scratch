@@ -206,10 +206,11 @@ def train(
                     b=batch_size,
                 ).to(device),
             )
+            print(Transformer.generate_square_subsequent_mask(32))
 
             loss = criterion(
-                outs[:, :-1, :].contiguous().view(-1, outs.size(-1)).to(device),
-                tgt["input_ids"][:, 1:].contiguous().view(-1).to(device),
+                outs.contiguous().view(-1, outs.size(-1)).to(device),
+                tgt["input_ids"].contiguous().view(-1).to(device),
             )
 
             optimizer.zero_grad()
@@ -247,4 +248,4 @@ def train(
 if __name__ == "__main__":
     df = load_txt("data/jpn.txt")
     traindf, testdf = split_data(df)
-    train("staka/fugumt-en-ja", traindf, testdf, batch_size=4, epoch=50)
+    train("staka/fugumt-en-ja", traindf, testdf, batch_size=2, epoch=50)

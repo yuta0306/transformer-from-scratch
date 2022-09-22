@@ -53,4 +53,4 @@ class Transformer(nn.Module):
 
     @staticmethod
     def generate_square_subsequent_mask(size: int) -> torch.Tensor:
-        return torch.triu(torch.full((size, size), 1e-9), diagonal=1)
+        return torch.tril(torch.full((size, size), 1), diagonal=0)

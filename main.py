@@ -139,6 +139,7 @@ class MTModel(nn.Module):
 
         for i in trange(src.size(1) - 1, leave=False):
             tgt_mask[:, i] = 1
+            print(tgt[0])
             pred = self(src, src_mask, tgt, tgt_mask)
             pred = pred[:, i]
             # logits = torch.softmax(pred, dim=-1)
@@ -234,12 +235,13 @@ def train(
     optimizer = optim.AdamW(model.parameters(), lr=1e-3)
     # lr_scheduler = optim.lr_scheduler.CosineAnnealingWarmRestarts(optimizer, T_0=1000)
     lr_scheduler = CosineAnnealingLR(
-        optimizer, T_0=700, T_warmup=700, T_multi=1, eta_min=1e-5
+        optimizer, T_0=2000, T_warmup=2000, T_multi=1, eta_min=1e-5
     )
 
     for e in trange(epoch):
         step = 0
         total = 0.0
+        model.train()
         for src, tgt in tqdm(train_loader, leave=False):
             step += 1
             outs = model(
@@ -273,6 +275,7 @@ def train(
         print("Predict testset")
         preds = []
         srcs = []
+        model.eval()
         for src, tgt in tqdm(test_loader, leave=False):
             ids = model.greedy_search(
                 src["input_ids"].to(device),

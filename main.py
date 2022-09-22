@@ -270,7 +270,7 @@ def train(
             if step % 200 == 0:
                 print(f"Epoch {e} | Step {step} >> Loss {loss.item()}")
         print("=" * 30)
-        print(f"Epoch {e} >> Loss {total / step}")
+        print(f"Epoch {e} >> Loss {total / max(1, step)}")
         print()
         print("Predict testset")
         preds = []

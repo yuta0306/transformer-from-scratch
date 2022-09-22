@@ -139,7 +139,7 @@ class MTModel(nn.Module):
 
         for i in trange(src.size(1) - 1, leave=False):
             tgt_mask[:, i] = 1
-            print(tgt[0])
+            # print(tgt[0])
             pred = self(src, src_mask, tgt, tgt_mask)
             pred = pred[:, i]
             # logits = torch.softmax(pred, dim=-1)

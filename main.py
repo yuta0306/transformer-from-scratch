@@ -195,7 +195,7 @@ def train(
         dataset,
         batch_size=batch_size,
         shuffle=True,
-        num_workers=-1,
+        num_workers=os.cpu_count(),
         collate_fn=CollateFn(tokenizer, max_length=32),
         drop_last=True,
         pin_memory=True,
@@ -203,7 +203,7 @@ def train(
     test_loader = data.DataLoader(
         test_dataset,
         batch_size=batch_size * 2,
-        num_workers=-1,
+        num_workers=os.cpu_count(),
         collate_fn=CollateFn(tokenizer, max_length=32),
         pin_memory=True,
     )

@@ -276,26 +276,26 @@ def train(
         preds = []
         srcs = []
         model.eval()
-        for src, tgt in tqdm(test_loader, leave=False):
-            ids = model.greedy_search(
-                src["input_ids"].to(device),
-                src["attention_mask"].to(device),
-                alpha=0,
-            )
-            if tgt_tokenizer is None:
-                text = tokenizer.batch_decode(ids.to("cpu"), skip_special_tokens=True)
-            else:
-                text = tgt_tokenizer.batch_decode(
-                    ids.to("cpu"), skip_special_tokens=True
-                )
-            preds += text
-            srcs += tokenizer.batch_decode(
-                src["input_ids"].to("cpu"), skip_special_tokens=True
-            )
+        # for src, tgt in tqdm(test_loader, leave=False):
+        #     ids = model.greedy_search(
+        #         src["input_ids"].to(device),
+        #         src["attention_mask"].to(device),
+        #         alpha=0,
+        #     )
+        #     if tgt_tokenizer is None:
+        #         text = tokenizer.batch_decode(ids.to("cpu"), skip_special_tokens=True)
+        #     else:
+        #         text = tgt_tokenizer.batch_decode(
+        #             ids.to("cpu"), skip_special_tokens=True
+        #         )
+        #     preds += text
+        #     srcs += tokenizer.batch_decode(
+        #         src["input_ids"].to("cpu"), skip_special_tokens=True
+        #     )
 
-        df = pd.DataFrame(data={"src": srcs, "tgt": preds})
-        os.makedirs("results", exist_ok=True)
-        df.to_csv(f"results/epoch_{e}.tsv", header=True, sep="\t", line_terminator="\n")
+        # df = pd.DataFrame(data={"src": srcs, "tgt": preds})
+        # os.makedirs("results", exist_ok=True)
+        # df.to_csv(f"results/epoch_{e}.tsv", header=True, sep="\t", line_terminator="\n")
 
 
 if __name__ == "__main__":

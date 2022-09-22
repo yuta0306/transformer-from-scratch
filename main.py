@@ -138,17 +138,38 @@ class MTModel(nn.Module):
         return tgt
 
 
-class LRScheduler(optim.lr_scheduler._LRScheduler):
+class CosineAnnealingLR(optim.lr_scheduler._LRScheduler):
     def __init__(
         self,
         optimizer: optim.Optimizer,
-        warmup_steps: int,
-        cycle_steps: int,
+        T_0: int,
+        T_warmup: int = 0,
+        T_multi: int = 1,
+        eta_min: float = 0.0,
         last_epoch: int = -1,
     ) -> None:
-        super(LRScheduler, self).__init__(optimizer, last_epoch)
-        self.warmup_steps = warmup_steps
-        self.cycle_steps = cycle_steps
+        assert T_0 >= 0 and isinstance(T_0, int)
+        assert T_multi > 0 and isinstance(T_multi, int)
+
+        self.T_0 = T_0
+        self.T_warmup = T_warmup
+        self.T_multi = T_multi
+        self.eta_min = eta_min
+        self.cos_anneal = optim.lr_scheduler.CosineAnnealingWarmRestarts(
+            optimizer, T_0=T_0, T_mult=T_multi, eta_min=eta_min, last_epoch=last_epoch
+        )
+        super(CosineAnnealingLR, self).__init__(optimizer, last_epoch)
+
+    def get_lr(self):
+        if self.last_epoch < self.T_warmup:
+            return [
+                self.eta_min
+                + (base_lr - self.eta_min) * (self.last_epoch / self.T_warmup)
+                for base_lr in self.base_lrs
+            ]
+
+        self.cos_anneal.step()
+        return self.cos_anneal.get_lr()
 
 
 def train(
@@ -174,7 +195,7 @@ def train(
         dataset,
         batch_size=batch_size,
         shuffle=True,
-        num_workers=2,
+        num_workers=-1,
         collate_fn=CollateFn(tokenizer, max_length=32),
         drop_last=True,
         pin_memory=True,
@@ -182,14 +203,15 @@ def train(
     test_loader = data.DataLoader(
         test_dataset,
         batch_size=batch_size * 2,
-        num_workers=2,
+        num_workers=-1,
         collate_fn=CollateFn(tokenizer, max_length=32),
         pin_memory=True,
     )
 
     criterion = nn.CrossEntropyLoss()
     optimizer = optim.AdamW(model.parameters(), lr=1e-4)
-    lr_scheduler = optim.lr_scheduler.CosineAnnealingWarmRestarts(optimizer, T_0=1000)
+    # lr_scheduler = optim.lr_scheduler.CosineAnnealingWarmRestarts(optimizer, T_0=1000)
+    lr_scheduler = CosineAnnealingLR(optimizer, T_0=700, T_warmup=700, T_multi=1)
 
     for e in trange(epoch):
         step = 0

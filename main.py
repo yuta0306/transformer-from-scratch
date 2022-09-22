@@ -302,7 +302,7 @@ if __name__ == "__main__":
         "bert-base-uncased",
         traindf,
         testdf,
-        batch_size=128,
+        batch_size=32,
         epoch=50,
         tgt_model_path="cl-tohoku/bert-base-japanese",
     )

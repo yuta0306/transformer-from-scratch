@@ -247,4 +247,4 @@ def train(
 if __name__ == "__main__":
     df = load_txt("data/jpn.txt")
     traindf, testdf = split_data(df)
-    train("staka/fugumt-en-ja", traindf, testdf, batch_size=2, epoch=50)
+    train("staka/fugumt-en-ja", traindf, testdf, batch_size=128, epoch=50)

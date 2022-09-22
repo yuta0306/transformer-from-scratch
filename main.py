@@ -301,7 +301,7 @@ def train(
 if __name__ == "__main__":
     df = load_txt("data/jpn.txt")
     traindf, testdf = split_data(df)
-    traindf = traindf.iloc[:10, :]
+    traindf = traindf.iloc[:32, :]
     train(
         "bert-base-uncased",
         traindf,

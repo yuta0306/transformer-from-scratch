@@ -235,7 +235,7 @@ def train(
     optimizer = optim.AdamW(model.parameters(), lr=1e-3)
     # lr_scheduler = optim.lr_scheduler.CosineAnnealingWarmRestarts(optimizer, T_0=1000)
     lr_scheduler = CosineAnnealingLR(
-        optimizer, T_0=2000, T_warmup=2000, T_multi=1, eta_min=1e-5
+        optimizer, T_0=10000, T_warmup=500, T_multi=1, eta_min=1e-5
     )
 
     for e in trange(epoch):
@@ -263,7 +263,7 @@ def train(
             optimizer.zero_grad()
             loss.backward()
             optimizer.step()
-            # lr_scheduler.step()
+            lr_scheduler.step()
 
             total += loss.item()
 

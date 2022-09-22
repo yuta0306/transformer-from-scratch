@@ -35,6 +35,7 @@ def get_tokenizer(model_path: str):
 
 def get_model(
     vocab_size: int,
+    tgt_vocab_size: Optional[int] = None,
     d_model: int = 256,
     n_heads: int = 4,
     num_layers: int = 4,
@@ -44,6 +45,7 @@ def get_model(
 ) -> Transformer:
     model = Transformer(
         vocab_size=vocab_size,
+        tgt_vocab_size=tgt_vocab_size,
         d_model=d_model,
         n_heads=n_heads,
         num_layers=num_layers,
@@ -65,15 +67,16 @@ class MTDataset(data.Dataset):
 
     def __getitem__(self, index):
         src = self.en[index]
-        tgt = "</s> " + self.ja[index]
+        tgt = self.ja[index]
 
         return src, tgt
 
 
 class CollateFn:
-    def __init__(self, tokenizer, max_length: int) -> None:
+    def __init__(self, tokenizer, max_length: int, tgt_tokenizer=None) -> None:
         self.tokenizer = tokenizer
         self.max_length = max_length
+        self.tgt_tokenizer = tgt_tokenizer
 
     def __call__(self, batch):
         src, tgt = zip(*batch)
@@ -86,13 +89,22 @@ class CollateFn:
             max_length=self.max_length,
             return_tensors="pt",
         )
-        tgt = self.tokenizer.batch_encode_plus(
-            tgt,
-            padding="max_length",
-            truncation=True,
-            max_length=self.max_length,
-            return_tensors="pt",
-        )
+        if self.tgt_tokenizer is None:
+            tgt = self.tokenizer.batch_encode_plus(
+                tgt,
+                padding="max_length",
+                truncation=True,
+                max_length=self.max_length,
+                return_tensors="pt",
+            )
+        else:
+            tgt = self.tgt_tokenizer.batch_encode_plus(
+                tgt,
+                padding="max_length",
+                truncation=True,
+                max_length=self.max_length,
+                return_tensors="pt",
+            )
         return src, tgt
 
 
@@ -129,11 +141,13 @@ class MTModel(nn.Module):
             tgt_mask[:, i] = 1
             pred = self(src, src_mask, tgt, tgt_mask)
             pred = pred[:, i]
-            logits = torch.softmax(pred, dim=-1)
-            ids = logits.max(dim=-1)
+            # logits = torch.softmax(pred, dim=-1)
+            ids = pred.max(dim=-1)
 
             # threshold
-            tgt[:, i + 1] = ids.indices.masked_fill(ids.values < alpha, pad_token)
+            tgt[:, i + 1] = ids.indices.masked_fill(
+                torch.sigmoid(ids.values) / 2 + 0.5 < alpha, pad_token
+            )
 
         return tgt
 
@@ -176,6 +190,7 @@ def train(
     model_path: str,
     train: pd.DataFrame,
     test: pd.DataFrame,
+    tgt_model_path: Optional[str] = None,
     batch_size: int = 64,
     epoch: int = 10,
     device: Optional[str] = None,
@@ -185,8 +200,15 @@ def train(
 
     config = get_config(model_path)
     tokenizer = get_tokenizer(model_path)
-    transformer = get_model(config.vocab_size)
-    model = MTModel(transformer, vocab_size=config.vocab_size, d_model=256)
+    tgt_vocab_size = None
+    tgt_tokenizer = None
+    if tgt_model_path is not None:
+        tgt_config = get_config(tgt_model_path)
+        tgt_tokenizer = get_tokenizer(tgt_model_path)
+        tgt_vocab_size = tgt_config.vocab_size
+    transformer = get_model(config.vocab_size, tgt_vocab_size=tgt_vocab_size)
+    vocab_size = tgt_vocab_size if tgt_vocab_size is not None else config.vocab_size
+    model = MTModel(transformer, vocab_size=vocab_size, d_model=256)
     model = model.to(device)
 
     dataset = MTDataset(train)
@@ -196,7 +218,7 @@ def train(
         batch_size=batch_size,
         shuffle=True,
         num_workers=os.cpu_count(),
-        collate_fn=CollateFn(tokenizer, max_length=32),
+        collate_fn=CollateFn(tokenizer, max_length=32, tgt_tokenizer=tgt_tokenizer),
         drop_last=True,
         pin_memory=True,
     )
@@ -204,7 +226,7 @@ def train(
         test_dataset,
         batch_size=batch_size * 2,
         num_workers=os.cpu_count(),
-        collate_fn=CollateFn(tokenizer, max_length=32),
+        collate_fn=CollateFn(tokenizer, max_length=32, tgt_tokenizer=tgt_tokenizer),
         pin_memory=True,
     )
 
@@ -255,11 +277,21 @@ def train(
                 src["attention_mask"].to(device),
                 alpha=0,
             )
-            text = tokenizer.batch_decode(ids.to("cpu"), skip_special_tokens=True)
+            if tgt_tokenizer is None:
+                text = tokenizer.batch_decode(ids.to("cpu"), skip_special_tokens=True)
+            else:
+                text = tgt_tokenizer.batch_decode(
+                    ids.to("cpu"), skip_special_tokens=True
+                )
             preds += text
-            srcs += tokenizer.batch_decode(
-                src["input_ids"].to("cpu"), skip_special_tokens=True
-            )
+            if tgt_tokenizer is None:
+                srcs += tokenizer.batch_decode(
+                    src["input_ids"].to("cpu"), skip_special_tokens=True
+                )
+            else:
+                srcs += tgt_tokenizer.batch_decode(
+                    src["input_ids"].to("cpu"), skip_special_tokens=True
+                )
 
         df = pd.DataFrame(data={"src": srcs, "tgt": preds})
         os.makedirs("results", exist_ok=True)
@@ -269,4 +301,11 @@ def train(
 if __name__ == "__main__":
     df = load_txt("data/jpn.txt")
     traindf, testdf = split_data(df)
-    train("staka/fugumt-en-ja", traindf, testdf, batch_size=128, epoch=50)
+    train(
+        "bert-base-uncased",
+        traindf,
+        testdf,
+        batch_size=128,
+        epoch=50,
+        tgt_model_path="cl-tohoku/bert-base-japanese",
+    )

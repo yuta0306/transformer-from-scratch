@@ -15,6 +15,7 @@ class Transformer(nn.Module):
         d_model: int,
         n_heads: int,
         num_layers: int,
+        tgt_vocab_size: Optional[int] = None,
         hidden_size: Optional[int] = None,
         dropout: float = 0.1,
         max_length: int = 512,
@@ -25,6 +26,10 @@ class Transformer(nn.Module):
             hidden_size = d_model
 
         self.embedding = nn.Embedding(vocab_size, d_model)
+        self.tgt_embedding = None
+        if tgt_vocab_size is not None:
+            self.tgt_embedding = nn.Embedding(tgt_vocab_size, d_model)
+
         self.pe = PositionalEncoding(d_model, dropout, max_length=max_length)
         encoder_layer = TransformerEncoderLayer(d_model, n_heads, hidden_size, dropout)
         self.encoder = TransformerEncoder(encoder_layer, num_layers)
@@ -44,7 +49,10 @@ class Transformer(nn.Module):
 
         context = self.encoder(src, src_mask)
 
-        tgt = self.embedding(tgt)
+        if self.tgt_embedding is not None:
+            tgt = self.tgt_embedding(tgt)
+        else:
+            tgt = self.embedding(tgt)
         tgt = self.pe(tgt)
 
         out = self.decoder(tgt, context, tgt_mask, context_mask)

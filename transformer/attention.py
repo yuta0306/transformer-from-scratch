@@ -82,7 +82,7 @@ class MultiHeadSelfAttention(nn.Module):
 
         self.scale = 1.0
         if scale:
-            self.scale = hidden_size**-5
+            self.scale = hidden_size ** (-0.5)
 
         self.q_proj = nn.Linear(dim, hidden_size, bias=False)
         self.k_proj = nn.Linear(dim, hidden_size, bias=False)
@@ -208,7 +208,7 @@ class MultiHeadCrossAttention(nn.Module):
 
         self.scale = 1.0
         if scale:
-            self.scale = hidden_size**-5
+            self.scale = hidden_size ** (-0.5)
 
         self.q_proj = nn.Linear(dim, hidden_size, bias=False)
         self.k_proj = nn.Linear(context_dim, hidden_size, bias=False)
